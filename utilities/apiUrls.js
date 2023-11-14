@@ -1,0 +1,13 @@
+exports.SET_USER_ONLINE_STATUS_API_URL = '/user/updateUserByToken'
+exports.CREATE_CHAT_API_URL = '/chat/insert'
+exports.FIND_USER_JOINED_ROOM_DETAIL_API_URL = `/usersrooms/getRoomUserByRoomId/` // + id
+exports.DELETE_USER_FROM_ROOM_API_URL = `/usersrooms/delete`
+exports.INVITE_USER_INTO_ROOM_API_URL = `/usersrooms/insert`
+exports.CREATE_REACTION_API_URL = `/reaction/insert`
+exports.REMOVE_REACTION_API_URL = `/reaction/delete/{{reaction}}`
+exports.UPDATE_CHAT_API_URL = `/chat/update/` // + id
+exports.DELETE_CHAT_API_URL = `/chat/delete/` // + id
+exports.PIN_CHAT_API_URL = `/chat/pin`
+exports.EDIT_ROOM_INFO_API_URL = `/room/update/` // + id
+exports.GET_SUPER_ADMIN_IDS_API_URL = `/user/getSuperAdminIds`
+exports.INSERT_NOTIFY_TO_USERS = `/notify/insertByListOfUser`

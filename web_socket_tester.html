@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <p>Login => join room => send message</p>
+
+    <main style="margin: 20px">
+      <div style="margin: 10px 0">
+        <input type="text" id="userId" placeholder="Enter user ID:" />
+        <button onclick="user_login()">Test login</button>
+        <button onclick="user_logout()">Test logout</button>
+      </div>
+      <div style="margin: 10px 0">
+        <div style="margin: 10px 0">
+          <input type="text" id="roomId" placeholder="Enter room ID:" />
+          <button onclick="join_room()">Test join room</button>
+        </div>
+
+        <form style="margin: 10px 0" onsubmit="send_message(event)">
+          <p>Send message tester</p>
+          <p><small>* Mỗi id cách nhau bởi dấu phẩy</small></p>
+          <input type="text" id="chatNotiToUserId" placeholder="Sent chat noti to user ID:" />
+          <input type="text" id="message" placeholder="Enter message" />
+          <button type="submit">Test send message</button>
+        </form>
+      </div>
+      <div style="margin: 10px 0">
+        <p>Send notify tester</p>
+        <p><small>* Mỗi id cách nhau bởi dấu phẩy</small></p>
+        <input type="text" id="user_id_private_notify" placeholder="Sent to user ID:" />
+        <button onclick="send_private_notify()">
+          Test send private notify
+        </button>
+        <button onclick="send_global_notify()">Test send global notify</button>
+      </div>
+      <div style="margin: 10px 0">
+        <p>Send invite tester</p>
+        <input type="text" id="inviteToUserId" placeholder="invite to user ID:" />
+        <input type="text" id="inviteToRoomId" placeholder="invite to room ID:" />
+        <button onclick="invite_into_room()">Test invite</button>
+      </div>
+    </main>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"
+      integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script>
+      const local = "http://localhost:3001";
+      const dev = "https://socket-chat.luongson.me";
+
+      const socket = io(dev);
+
+      let user_id = null;
+      const basic_user_id = "6540ee840c0ffed5ed8303a3";
+      let room_id = null;
+
+      socket.on("user_login", (data) => console.log(data));
+      socket.on("login_time", (data) => console.log(data));
+      socket.on("receive_error", (data) => console.log(data));
+      socket.on("receive_notify", (data) => {
+        console.log(`[notify]: you have a new notify`, data);
+      });
+      socket.on("receive_send_notify", (data) => console.log(data));
+      socket.on("receive_join_room", (data) => console.log(data));
+      socket.on("receive_chat", (data) => {
+        console.log("nhan tin nhan")
+        // console.log(
+        //   `[message]: someone have just sent message in this room`,
+        //   data
+        // );
+      });
+
+      socket.on("receive_invite_into_room", data => {
+        console.log(`receive_invite_into_room`, data)
+      })
+
+      socket.on("receive_chat_room_outside", (data) => { console.log("receive_chat_room_outside", data) })
+
+      socket.on("receive_chat_notify", (data) => {
+        console.log(`[notify]: someone have just sent to you a message:`, data);
+      });
+
+      function user_login() {
+        const userId = document.querySelector("#userId").value;
+        if (!userId) {
+          alert("Bạn chưa truyền user id");
+          return;
+        }
+        user_id = userId;
+        socket.emit("user_login", { userId: user_id, token: "hehehe" });
+      }
+
+      function join_room() {
+        if (!user_id) {
+          alert("Bạn chưa truyền user id");
+          return;
+        }
+        room_id = document.querySelector("#roomId").value
+
+        if (!room_id) {
+          alert("Bạn chưa truyền room id");
+          return;
+        }
+        socket.emit("join_room", { roomId: room_id, userId: user_id });
+      }
+
+      function user_logout() {
+        if (!user_id) {
+          alert("Bạn chưa truyền user id");
+          return;
+        }
+        socket.emit("user_logout", { userId: user_id });
+      }
+
+      function send_message(event) {
+
+        event.preventDefault()
+
+        if (!room_id) {
+          alert("Bạn chưa vào phòng");
+          return;
+        }
+        const message = document.querySelector("#message").value
+        const chatNotiToUserId = document.querySelector("#chatNotiToUserId").value
+        const userIdsMapped = chatNotiToUserId.length > 0 ? chatNotiToUserId.split(",").map(i => i.trim()):[]
+
+        if (!message) {
+          alert("Vui lòng nhập tin nhắn")
+          return
+        }
+        
+        socket.emit("insert_chat", {
+          messageObject: { msg: "Test" },
+          roomId: room_id,
+          userIds: userIdsMapped
+        });
+        // send_notify()
+      }
+
+      function invite_into_room() {
+
+        let inviteToRoomId = document.querySelector("#inviteToRoomId").value
+
+        if (!inviteToRoomId) {
+          alert("Chưa truyền vào inviteToRoomId")
+          return
+        }
+
+        let inviteToUserId = document.querySelector("#inviteToUserId").value
+
+        if (!inviteToUserId) {
+          alert("Chưa truyền vào user id")
+          return
+        }
+
+        socket.emit("invite_into_room", {
+          roomObject: {
+            _id: "123123123",
+            roomName: "Hello world",
+          },
+          roomId: inviteToRoomId,
+          userIds: [inviteToUserId],
+        });
+      }
+
+      function send_private_notify() {
+
+        const input = document.querySelector("#user_id_private_notify").value
+        const userIds = input.split(",").map(i => i.trim())
+        console.log(userIds)
+
+        // ['6543a89f6ea28811ffe3131b', '65439bfe6b3fec6998747be7', '6544bcf55eb062a15627adce', '6544855130891c3c1039b290']
+
+        // if (!input) {
+        //   alert("Bạn chưa nhập id người nhận notify")
+        //   return
+        // }
+
+        socket.emit("send_notify", {
+          key: "notify",
+          data: "send_private_notify",
+          userIds: userIds,
+        });
+      }
+
+      function send_global_notify() {
+        socket.emit("send_notify", {
+          key: "notify",
+          data: "send_global_notify",
+        });
+      }
+    </script>
+  </body>
+</html>
